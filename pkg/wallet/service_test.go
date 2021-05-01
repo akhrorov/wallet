@@ -7,6 +7,91 @@ import (
 	"testing"
 )
 
+func TestService_SumPaymentsWithProgress(t *testing.T) {
+	service := &Service{}
+	account, _, err := service.addAccount(defaultExampleTestAccount)
+	_, _, err = service.addAccount(defaultExampleTestAccount2)
+	if err != nil {
+		t.Fatalf("SumPayments(): can't addAccount, %v", err)
+		return
+	}
+
+	for i := 0; i < 10; i++ {
+		err = service.Deposit(account.ID, 10_000)
+		_, err = service.Pay(account.ID, 10_000, "food")
+		if err != nil {
+			t.Fatalf("SumPaymentsWithProgress(): can't pay, %v", err)
+			return
+		}
+	}
+
+	sum := 0
+	progress := service.SumPaymentsWithProgress()
+	for value := range progress {
+		sum += int(value.Result)
+	}
+}
+//func TestService_FilterPaymentsFn_success(t *testing.T) {
+//	service := &Service{}
+//	account, _, err := service.addAccount(defaultExampleTestAccount)
+//	_, _, err = service.addAccount(defaultExampleTestAccount2)
+//	if err != nil {
+//		t.Fatalf("SumPayments(): can't addAccount, %v", err)
+//		return
+//	}
+//	for i := 0; i < 10; i++{
+//		_,err = service.Pay(account.ID, 10_000, "food")
+//	}
+//
+//	ps, err := service.FilterPaymentsByFn(func(payment types.Payment) bool {
+//		return payment.AccountID == 1
+//	}, 3)
+//	if err != nil {
+//		t.Error(ps)
+//		return
+//	}
+//}
+//
+//func BenchmarkService_FilterPayments(b *testing.B) {
+//	service := &Service{}
+//	account, _, err := service.addAccount(defaultExampleTestAccount)
+//	_, _, err = service.addAccount(defaultExampleTestAccount2)
+//	if err != nil {
+//		b.Fatalf("SumPayments(): can't addAccount, %v", err)
+//		return
+//	}
+//	for i := 0; i < 10; i++{
+//		_,err = service.Pay(account.ID, 10_000, "food")
+//	}
+//
+//	_, err = service.FilterPayments(account.ID, 1)
+//	if err != nil {
+//		b.Fatalf("SumPayments(): error, %v", err)
+//		return
+//	}
+//}
+//
+//func TestService_FilterPayments(t *testing.T) {
+//	service := &Service{}
+//	account, _, err := service.addAccount(defaultExampleTestAccount)
+//	_, _, err = service.addAccount(defaultExampleTestAccount2)
+//	if err != nil {
+//		t.Fatalf("FilterPayments(): can't addAccount, %v", err)
+//		return
+//	}
+//
+//	_, err = service.FilterPayments(account.ID,0)
+//	if err != nil {
+//		t.Fatalf("FilterPayments(): account not found, %v", err)
+//	}
+//
+//	_, err = service.FilterPayments(account.ID,2)
+//	if err != nil {
+//		t.Fatalf("FilterPayments(): account not found, %v", err)
+//	}
+//
+//}
+
 func BenchmarkService_SumPayments(b *testing.B) {
 	service := &Service{}
 	account, _, err := service.addAccount(defaultExampleTestAccount)
@@ -15,23 +100,45 @@ func BenchmarkService_SumPayments(b *testing.B) {
 		b.Fatalf("SumPayments(): can't addAccount, %v", err)
 		return
 	}
-	_,err = service.Pay(account.ID, 10_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
-	_,err = service.Pay(account.ID, 30_000, "food")
+	for i := 0; i < 10; i++{
+		_,err = service.Pay(account.ID, 10_000, "food")
+	}
 
-	want := types.Money(480000)
+	if err != nil {
+		b.Fatalf("SumPayments(): can't pay, %v", err)
+		return
+	}
+	want := types.Money(300000)
+
 	for i := 0; i < b.N; i++ {
-		result := service.SumPayments(1)
-		if result != want {
-			b.Fatalf("Invalid result, got %v, want %v", result, want)
+		result := service.SumPayments(3)
+
+		if want != result {
+			b.Fatalf("SumPayments(): want %v, result %v", want, result)
 		}
+	}
+}
+
+func TestService_SumPayments(t *testing.T) {
+	service := &Service{}
+	account, _, err := service.addAccount(defaultExampleTestAccount)
+	_, _, err = service.addAccount(defaultExampleTestAccount2)
+	if err != nil {
+		t.Fatalf("SumPayments(): can't addAccount, %v", err)
+		return
+	}
+	for i := 0; i < 10; i++{
+		_,err = service.Pay(account.ID, 10_000, "food")
+	}
+
+	if err != nil {
+		t.Fatalf("SumPayments(): can't pay, %v", err)
+		return
+	}
+	result := service.SumPayments(1)
+	if result == 0 {
+		t.Fatalf("SumPayments(): can't sum payments, %v", err)
+		return
 	}
 }
 
@@ -55,7 +162,7 @@ func TestService_Import(t *testing.T) {
 	//if err != nil {
 	//	t.Errorf("Import(): can't Import, %v", err)
 	//}
-	
+
 	paymentss, err := service.ExportAccountHistory(account.ID)
 	if err != nil {
 		t.Errorf("Import(): can't Export Account History, %v", err)
