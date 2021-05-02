@@ -1,6 +1,75 @@
 package main
 
+import (
+	"context"
+	"github.com/akhrorov/wallet/pkg/search"
+	"log"
+)
+
 func main() {
+	root := context.Background()
+	ctx, cancel := context.WithCancel(root)
+	files := []string{
+		"1. aaa, bbb, ccc\n2. ddd, eee, fff\n3. ggg, hhh, iii\n",
+		"4. jjj, kkk, lll\n5. xxx, nnn, ooo\n6. ppp, qqq, rrr\n",
+		"7. sss, ttt, uuu\n8. vvv, www, xxx\n9. yyy, bbb, zzz\n",
+	}
+	result := <- search.All(ctx, "xxx", files)
+	cancel()
+	log.Print(result)
+
+
+	//root := context.Background()
+	//ctx, cancel := context.WithCancel(root)
+	//ch := make(chan int)
+	//
+	//for i := 0; i < 5; i++ {
+	//	go func(ctx context.Context, index int, ch chan<- int) {
+	//		wait := rand.Intn(10)
+	//		log.Printf("%d wait for %d", index, wait)
+	//		select {
+	//			case <-ctx.Done():
+	//				log.Printf("%d canceled", index)
+	//		case <-time.After(time.Second * time.Duration(wait)):
+	//			ch <- index
+	//			log.Printf("%d done with %d", index, wait)
+	//		}
+	//	}(ctx, i, ch)
+	//}
+	//
+	//winner := <-ch
+	//cancel()
+	//log.Print(winner)
+	//<-time.After(time.Second)
+
+	//for i := 0; i <5; i++ {
+	//	go func(ctx context.Context, index int) {
+	//		<-ctx.Done()
+	//		log.Printf("done %d", index)
+	//		return
+	//	}(ctx, i)
+	//}
+	//
+	//<-ctx.Done()
+	//<-time.After(time.Second)
+	//log.Print("done")
+
+	//wg := sync.WaitGroup{}
+	//wg.Add(1)
+	//go func(ctx context.Context) {
+	//	for {
+	//		select {
+	//		case <-ctx.Done():
+	//			log.Print("done")
+	//			wg.Done()
+	//			return
+	//		case <-time.After(time.Second):
+	//			log.Print("tick")
+	//		}
+	//	}
+	//}(ctx)
+	//wg.Wait()
+	//log.Print("main done")
 
 	//data := make([]int,1_000_000)
 	//for i := range data{
